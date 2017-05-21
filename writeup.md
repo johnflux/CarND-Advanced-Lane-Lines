@@ -19,8 +19,9 @@ The goals / steps of this project are the following:
 
 [image1]: ./output_images/undistort_chessboard.png "Undistorted"
 [image2]: ./output_images/undistort_straight_lines1.png "Road Transformed"
-[image3]: ./examples/binary_combo_example.jpg "Binary Example"
-[image4]: ./examples/warped_straight_lines.jpg "Warp Example"
+[image3]: ./output_images/sobelx.png "Sobelx operator applied"
+[image4]: ./output_images/thresholded.png "Threshold on gradient and color"
+[image5a]: ./examples/warped_straight_lines.jpg "Warp Example"
 [image5]: ./examples/color_fit_lines.jpg "Fit Visual"
 [image6]: ./examples/example_output.jpg "Output"
 [video1]: ./project_video.mp4 "Video"
@@ -58,18 +59,27 @@ In `lanes.py`, the function `loadUndistortedImageAsYUV()` applies the undistorti
 This function applies the distortion correction using the `cv2.undistort` function.  Here it is applied to one of the test images: (Left is original, right is distortion corrected)
 ![alt text][image2]
 
-#### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
+#### 2. Using color and gradient to create a thresholded binary image.
 
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+In `lanes.py`, the function `sobelx(img)` applies the sobel_x operator to the gray scale part of the YUV image.  Note that I have left the two color channels untouched for convenience.
+
+The result of applying this to the same distortion-corrected image above is:
 
 ![alt text][image3]
+
+I used a combination of color and gradient thresholds to generate a image (thresholding steps in `applyThresholds(img)` function in `lanes.py`).  I filter for the gradient being greater the 50, and the color being either yellow or white.  Here's the output for the same image above:
+
+![alt text][image4]
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
 The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
 
 ```python
-src = np.float32(
+src_points = [[264,678],[626,431],[1038,678],[651,431]]
+dst_points = [[320,0],[320,720],[960,720],[960,0]]
+
+np.float32(
     [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
     [((img_size[0] / 6) - 10), img_size[1]],
     [(img_size[0] * 5 / 6) + 60, img_size[1]],
@@ -85,14 +95,14 @@ This resulted in the following source and destination points:
 
 | Source        | Destination   | 
 |:-------------:|:-------------:| 
-| 585, 460      | 320, 0        | 
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
+| 264, 678      | 320, 0        | 
+| 626, 431      | 320, 720      |
+| 1038,678      | 960, 720      |
+| 651, 431      | 960, 0        |
 
 I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
 
-![alt text][image4]
+![alt text][image5a]
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
