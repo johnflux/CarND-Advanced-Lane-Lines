@@ -41,12 +41,19 @@ def applyThresholds(img):
     img[mask,2] = 0
     return img
 
-def warper(img):
-    scale = np.divide(np.array([720, 1280]), img.shape[0:2])
-    src_points = np.float32([[264,678],[626,431],[1038,678],[651,431]]) * scale
-    dst_points = np.float32([[320,0],[320,720],[960,720],[960,0]]) * scale
-    print(src_points)
+def drawLines(img, points):
+    pts = points.reshape((-1,1,2))
+    pts[:,:,[0,1]] = pts[:,:,[1,0]]
+    img = cv2.polylines(img, [pts], True, (0,255,255),thickness=2)
+    return img
 
+
+def warper(img, debugDrawLines=False):
+    scale = np.divide(np.array([720, 1280]), img.shape[0:2])
+    src_points = np.int32([[678,264],[431,626],[431,651],[678,1038]] * scale)
+    dst_points = np.int32([[0,320],[720,320],[0,960],[720,960]] * scale)
+    if debugDrawLines:
+        img = drawLines(img, src_points)
     return img
 
 img = loadUndistortedImageAsHSV('test_images/straight_lines1.jpg')
@@ -56,6 +63,6 @@ saveImage(img, "sobelx.png")
 img = applyThresholds(img)
 saveImage(img, "thresholded.png")
 
-img = warper(img)
+img = warper(img, debugDrawLines=True)
 showImage(img)
 

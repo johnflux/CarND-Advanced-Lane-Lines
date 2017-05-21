@@ -73,29 +73,19 @@ I used a combination of color and gradient thresholds to generate a image (thres
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+The code for my perspective transform includes a function called `warper()`, which appears from line 44 in the file `lanes.py`.  The `warper()` function takes as inputs an image (`img`) and returns a perspective transformed version of the image.  I chose to hardcod the source and destination points as so:
 
 ```python
-src_points = [[264,678],[626,431],[1038,678],[651,431]]
-dst_points = [[320,0],[320,720],[960,720],[960,0]]
-
-np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
+    scale = np.divide(np.array([720, 1280]), img.shape[0:2])
+    src_points = np.float32([[678,264],[431,626],[678,1038],[431,651]]) * scale
+    dst_points = np.float32([[0,320],[720,320],[720,960],[0,960]]) * scale
 ```
 
 This resulted in the following source and destination points:
 
-| Source        | Destination   | 
-|:-------------:|:-------------:| 
-| 264, 678      | 320, 0        | 
+| Source        | Destination   |
+|:-------------:|:-------------:|
+| 264, 678      | 320, 0        |
 | 626, 431      | 320, 720      |
 | 1038,678      | 960, 720      |
 | 651, 431      | 960, 0        |
