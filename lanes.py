@@ -4,6 +4,8 @@ import pickle
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import optimize
+
 
 with open('camera_undistort_matrix.pkl', 'rb') as f:
     (camera_undistort_matrix, camera_undistort_dist) = pickle.load(f)
@@ -43,26 +45,70 @@ def applyThresholds(img):
 
 def drawLines(img, points):
     pts = points.reshape((-1,1,2))
-    pts[:,:,[0,1]] = pts[:,:,[1,0]]
     img = cv2.polylines(img, [pts], True, (0,255,255),thickness=2)
     return img
 
 
-def warper(img, debugDrawLines=False):
-    scale = np.divide(np.array([720, 1280]), img.shape[0:2])
-    src_points = np.int32([[678,264],[431,626],[431,651],[678,1038]] * scale)
-    dst_points = np.int32([[0,320],[720,320],[0,960],[720,960]] * scale)
+def warper(img, debugDrawLines=False, debugDoNotTransform=False):
+    scale = np.divide(np.array([1280, 720]), [img.shape[1],img.shape[0]])
+    src_points = np.float32([[253,678],[592,450],[687,450],[1054,678]] * scale)
+    dst_points = np.float32([[320,700],[320,0],[960,0],[960,700]] * scale)
+    if debugDrawLines and debugDoNotTransform:
+        return drawLines(img, np.int32(src_points))
+    M = cv2.getPerspectiveTransform(src_points, dst_points)
+    img = cv2.warpPerspective(img,M,(1280,720))
     if debugDrawLines:
-        img = drawLines(img, src_points)
+        img = drawLines(img, np.int32(dst_points))
+    return img
+
+def warperDebug(img, filename):
+    imgBefore = warper(np.copy(img), debugDrawLines=True, debugDoNotTransform=True)
+    imgAfter = warper(np.copy(img), debugDrawLines=True, debugDoNotTransform=False)
+    img = np.concatenate((imgBefore,imgAfter),axis=1)
+    saveImage(img, filename)
+
+def laneCurve(coeff, y):
+    return coeff[0] * y*y + coeff[1]*y +coeff[2]
+
+def fitPolynomialToLane(img, x0):
+    img_height = img.shape[0]
+    img_width = img.shape[1]
+    def residuals(coeff):
+        r = []
+        for y in range(img_height):
+            target_x = laneCurve(coeff, y)
+            for x in range(int(img_width/2)):
+                v = img[y,x,2]
+                if v > 0:
+                    dist = x - target_x
+                    r.append(dist)
+        return np.array(r)
+
+    res_log = optimize.least_squares(residuals, x0, loss='cauchy', f_scale=0.1)
+    print(res_log)
+    return res_log.x
+
+def drawLane(img,X):
+    for y in range(img.shape[0]):
+        print(y, int(laneCurve(X, y)))
+        img[y,int(laneCurve(X, y))] = [40,255,255]
     return img
 
 img = loadUndistortedImageAsHSV('test_images/straight_lines1.jpg')
+
+#warperDebug(img, "warper1.png")
 img = sobelx(img)
-
-saveImage(img, "sobelx.png")
+#saveImage(img, "sobelx.png")
 img = applyThresholds(img)
-saveImage(img, "thresholded.png")
+#saveImage(img, "thresholded.png")
+#warperDebug(img, "warper2.png")
 
-img = warper(img, debugDrawLines=True)
+img = warper(img)
+
+X = np.array([0,0,329])
+
+X = fitPolynomialToLane(img, X)
+
+img = drawLane(img, X)
+
 showImage(img)
-

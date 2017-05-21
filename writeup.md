@@ -21,7 +21,8 @@ The goals / steps of this project are the following:
 [image2]: ./output_images/undistort_straight_lines1.png "Road Transformed"
 [image3]: ./output_images/sobelx.png "Sobelx operator applied"
 [image4]: ./output_images/thresholded.png "Threshold on gradient and color"
-[image5a]: ./examples/warped_straight_lines.jpg "Warp Example"
+[imageWarp1]: ./output_images/warper1.png "Warp on original"
+[imageWarp2]: ./output_images/warper2.png "Warp on sobel'ed"
 [image5]: ./examples/color_fit_lines.jpg "Fit Visual"
 [image6]: ./examples/example_output.jpg "Output"
 [video1]: ./project_video.mp4 "Video"
@@ -76,23 +77,23 @@ I used a combination of color and gradient thresholds to generate a image (thres
 The code for my perspective transform includes a function called `warper()`, which appears from line 44 in the file `lanes.py`.  The `warper()` function takes as inputs an image (`img`) and returns a perspective transformed version of the image.  I chose to hardcod the source and destination points as so:
 
 ```python
-    scale = np.divide(np.array([720, 1280]), img.shape[0:2])
-    src_points = np.float32([[678,264],[431,626],[678,1038],[431,651]]) * scale
-    dst_points = np.float32([[0,320],[720,320],[720,960],[0,960]]) * scale
+scale = np.divide(np.array([1280, 720]), [img.shape[1],img.shape[0]])
+src_points = np.float32([[253,678],[592,450],[687,450],[1054,678]] * scale)
+dst_points = np.float32([[320,700],[320,0],[960,0],[960,700]] * scale)
 ```
 
 This resulted in the following source and destination points:
 
 | Source        | Destination   |
 |:-------------:|:-------------:|
-| 264, 678      | 320, 0        |
-| 626, 431      | 320, 720      |
-| 1038,678      | 960, 720      |
-| 651, 431      | 960, 0        |
+| 253, 678      | 320, 0        |
+| 592, 450      | 320, 720      |
+| 1054,678      | 960, 0        |
 
 I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
 
-![alt text][image5a]
+![alt text][imageWarp1]
+![alt text][imageWarp2]
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
