@@ -89,9 +89,10 @@ def fitPolynomialToLane(img, x0):
     return res_log.x
 
 def drawLane(img,X):
+    print(img.shape)
     for y in range(img.shape[0]):
-        print(y, int(laneCurve(X, y)))
-        img[y,int(laneCurve(X, y))] = [40,255,255]
+        x = int(laneCurve(X, y))
+        img[y,x:(x+4)] = [40,255,255]
     return img
 
 img = loadUndistortedImageAsHSV('test_images/straight_lines1.jpg')
@@ -103,12 +104,11 @@ img = applyThresholds(img)
 #saveImage(img, "thresholded.png")
 #warperDebug(img, "warper2.png")
 
+img = loadUndistortedImageAsHSV('test_images/test2.jpg')
+img = sobelx(img)
+img = applyThresholds(img)
 img = warper(img)
-
-X = np.array([0,0,329])
-
+X = np.array([0,0,201])
 X = fitPolynomialToLane(img, X)
-
 img = drawLane(img, X)
-
 showImage(img)
